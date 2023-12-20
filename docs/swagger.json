@@ -1,0 +1,237 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/check": {
+            "post": {
+                "description": "Checks if there is an update available for a given application package and returns the type of update required along with the latest version information, if any.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Application Update"
+                ],
+                "summary": "Check for application updates",
+                "parameters": [
+                    {
+                        "description": "Check Request - includes details such as package version and current version of the application.",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CheckRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success Response - returns the type of update required ('hard', 'soft', or 'none') and the latest version information, if an update is available.",
+                        "schema": {
+                            "$ref": "#/definitions/response.CheckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid request body or parameters.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Update information for the requested package is not found.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Unexpected error occurred during processing.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/download/{filename}": {
+            "get": {
+                "description": "Provides the ability to download an APK file stored on the server.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "APK Download"
+                ],
+                "summary": "Download APK file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filename of the APK to be downloaded",
+                        "name": "filename",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "APK file",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid file type or invalid request format.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - The requested APK file is not found.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - An unexpected error occurred.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/upload": {
+            "post": {
+                "description": "This endpoint handles the uploading of an APK file and updates the application version information in the database.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Application Update"
+                ],
+                "summary": "Update Application Version",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "APK File to be uploaded; should follow the specified naming convention.",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response indicating the successful processing and updating of the application version information.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Occurs when the request body is invalid, parameters are missing or improperly formatted, or if the file does not follow the expected naming convention.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: The requested document is not found in the database.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: An error occurred during processing, such as a database error, file upload issue, or any other server-side problem.",
+                        "schema": {
+                            "$ref": "#/definitions/response.StatusResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "request.CheckRequest": {
+            "description": "The request payload for checking application updates.",
+            "type": "object",
+            "required": [
+                "installerPackageName",
+                "packageName",
+                "versionName"
+            ],
+            "properties": {
+                "installerPackageName": {
+                    "description": "InstallerPackageName is the package name of the installer.\n@Required",
+                    "type": "string",
+                    "example": "apk"
+                },
+                "packageName": {
+                    "description": "PackageName is the unique identifier of the application package.\n@Required",
+                    "type": "string",
+                    "example": "com.test.example"
+                },
+                "versionCode": {
+                    "description": "BuildNumber is the current version build of the application.\nMust be greater than 0.\n@Required",
+                    "type": "integer",
+                    "example": 2
+                },
+                "versionName": {
+                    "description": "BuildNumber is the current version build of the application.\nMust be greater than 0.\n@Required",
+                    "type": "string",
+                    "example": "2.0.0"
+                }
+            }
+        },
+        "response.CheckResponse": {
+            "description": "holds the overall update information for an application.",
+            "type": "object",
+            "properties": {
+                "latestVersion": {
+                    "description": "LatestVersion contains the details of the latest version if an update is available.\nThis field is omitted when UpdateType is 'none'.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.VersionInfo"
+                        }
+                    ]
+                },
+                "updateType": {
+                    "description": "UpdateType indicates the type of update required ('hard', 'soft', or 'none').\nWhen UpdateType is 'none', the LatestVersion field will not be present in the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "response.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.VersionInfo": {
+            "description": "holds information about the latest version of the app.",
+            "type": "object",
+            "properties": {
+                "url": {
+                    "description": "Url is the URL where the latest version can be downloaded from.",
+                    "type": "string"
+                },
+                "versionCode": {
+                    "description": "VersionCode represents the version build of the application.",
+                    "type": "integer"
+                },
+                "versionName": {
+                    "description": "Name is the version of the latest application version.",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

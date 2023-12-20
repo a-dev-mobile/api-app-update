@@ -1,0 +1,46 @@
+# Настройки логирования сервиса
+
+environment: "${APP_ENV}"
+
+logging:
+  level: debug # Logging level (debug, info, warning, error)
+  fileOutput:
+    filePath: "" # Path to the log file
+    rotationPolicy: monthly
+    maxSizeMB: 500
+    maxBackups: 50
+    # 
+swagger:
+  swaggerHost: 
+# 
+fileStorage:
+  apkPath:  
+  apkURL: 
+# Database configuration
+database:
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  host: # Database server address
+  port: "27017" # Database server port
+  name:  # Database name
+  connectionTimeoutSeconds: 10
+  maxPoolSize: 50
+  collections: # Names of the collections used
+    appUpdate: 
+
+
+
+# Server settings for processing client requests via REST API
+clientConnectionSettings:
+  ginMode: "debug" # Server operating mode (debug or release)
+  port: "80" # Port and host on which the server is running
+  host: "localhost" # Server
+# List of sources that are allowed to access the REST API (CORS settings)
+  allowedOrigins:
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+    - "http://localhost:80"
+
+
+
+
