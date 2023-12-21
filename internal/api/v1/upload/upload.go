@@ -83,7 +83,7 @@ func (hctx *HandlerContext) Upload(c *gin.Context) {
 	}
 	// Parse filename to extract details
 	if err := req.ParseFilename(apkFile.Filename); err != nil {
-
+		hctx.Logger.Error("Failed to ParseFilename", "error", err.Error())
 		c.JSON( http.StatusBadRequest, response.StatusResponse{Message:err.Error()})
 		return
 	}
