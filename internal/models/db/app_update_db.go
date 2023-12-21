@@ -9,7 +9,10 @@ type DownloadInfo struct {
 type VersionInfo struct {
 	VersionCode int    `json:"versionCode" bson:"versionCode"`
 	VersionName  string `json:"versionName" bson:"versionName"`
+	Checksum    string `json:"checksum" bson:"checksum"` // New field for checksum
 }
+
+
 
 type UpdateRequirements struct {
 	HardUpdate UpdatePolicy `json:"hardUpdate" bson:"hardUpdate"`

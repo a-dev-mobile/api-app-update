@@ -41,7 +41,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success Response - returns the type of update required ('hard', 'soft', or 'none') and the latest version information, if an update is available.",
+                        "description": "Success Response - returns the type of update required ('hard', 'soft', or 'none') and the latest version information, including the checksum, if an update is available.",
                         "schema": {
                             "$ref": "#/definitions/response.CheckResponse"
                         }
@@ -227,9 +227,12 @@ const docTemplate = `{
             }
         },
         "response.VersionInfo": {
-            "description": "holds information about the latest version of the app.",
             "type": "object",
             "properties": {
+                "checksum": {
+                    "description": "Checksum is the SHA-256 checksum of the latest application version.",
+                    "type": "string"
+                },
                 "url": {
                     "description": "Url is the URL where the latest version can be downloaded from.",
                     "type": "string"
@@ -239,7 +242,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "versionName": {
-                    "description": "Name is the version of the latest application version.",
+                    "description": "VersionName is the version of the latest application version.",
                     "type": "string"
                 }
             }

@@ -1,15 +1,18 @@
 package response
 
-// @Description holds information about the latest version of the app.
+// VersionInfo holds information about the latest version of the app.
 type VersionInfo struct {
 	// VersionCode represents the version build of the application.
 	VersionCode int `json:"versionCode,omitempty"`
 
-	// Name is the version of the latest application version.
+	// VersionName is the version of the latest application version.
 	VersionName string `json:"versionName,omitempty"`
 
 	// Url is the URL where the latest version can be downloaded from.
 	Url string `json:"url,omitempty"`
+
+	// Checksum is the SHA-256 checksum of the latest application version.
+	Checksum string `json:"checksum,omitempty"` // Add Swagger description here
 }
 
 // @Description holds the overall update information for an application.

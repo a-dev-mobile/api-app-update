@@ -49,7 +49,7 @@ func NewHandlerContext(db *mongo.Client, lg *slog.Logger, cfg *config.Config) *H
 // @Accept json
 // @Produce json
 // @Param request body request.CheckRequest true "Check Request - includes details such as package version and current version of the application."
-// @Success 200 {object} response.CheckResponse "Success Response - returns the type of update required ('hard', 'soft', or 'none') and the latest version information, if an update is available."
+// @Success 200 {object} response.CheckResponse "Success Response - returns the type of update required ('hard', 'soft', or 'none') and the latest version information, including the checksum, if an update is available."
 // @Failure 400 {object} response.StatusResponse "Bad Request - Invalid request body or parameters."
 // @Failure 404 {object} response.StatusResponse "Not Found - Update information for the requested package is not found."
 // @Failure 500 {object} response.StatusResponse "Internal Server Error - Unexpected error occurred during processing."
@@ -58,25 +58,25 @@ func (hctx *HandlerContext) Check(c *gin.Context) {
 	var updateReq request.CheckRequest
 	if err := c.ShouldBindJSON(&updateReq); err != nil {
 
-		c.JSON( http.StatusBadRequest, response.StatusResponse{Message: "Invalid request body"})
+		c.JSON(http.StatusBadRequest, response.StatusResponse{Message: "Invalid request body"})
 		return
 	}
 
 	if err := updateReq.Validate(); err != nil {
 
-		c.JSON( http.StatusBadRequest, response.StatusResponse{Message:  "Invalid request parameters"})
+		c.JSON(http.StatusBadRequest, response.StatusResponse{Message: "Invalid request parameters"})
 		return
 	}
 
 	updateInfo, err := hctx.processUpdateCheck(c.Request.Context(), updateReq)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-		
-			c.JSON( http.StatusNotFound, response.StatusResponse{Message: "Update information not found"})
+
+			c.JSON(http.StatusNotFound, response.StatusResponse{Message: "Update information not found"})
 			return
 		}
 		hctx.Logger.Error("Unhandled error in update check", slog.String("error", err.Error()))
-		c.JSON( http.StatusNotFound, response.StatusResponse{Message:  err.Error()})
+		c.JSON(http.StatusNotFound, response.StatusResponse{Message: err.Error()})
 
 		return
 	}
@@ -110,18 +110,17 @@ func (hctx *HandlerContext) processUpdateCheck(ctx context.Context, updateReq re
 // determineUpdateType determines the type of update required based on the current version build and the download information.
 func (hctx *HandlerContext) determineUpdateType(versionCode int, downloadInfo db.DownloadInfo) (string, *response.VersionInfo) {
 	if downloadInfo.LatestVersion.VersionCode > versionCode {
+		versionInfo := &response.VersionInfo{
+			VersionCode: downloadInfo.LatestVersion.VersionCode,
+			VersionName: downloadInfo.LatestVersion.VersionName,
+			Url:         downloadInfo.URL,
+			Checksum:    downloadInfo.LatestVersion.Checksum,
+		}
+
 		if downloadInfo.UpdateRequired.HardUpdate.MinimumVersionCode > versionCode {
-			return "hard", &response.VersionInfo{
-				VersionCode: downloadInfo.LatestVersion.VersionCode,
-				VersionName: downloadInfo.LatestVersion.VersionName,
-				Url:         downloadInfo.URL,
-			}
+			return "hard", versionInfo
 		} else if downloadInfo.UpdateRequired.SoftUpdate.MinimumVersionCode > versionCode {
-			return "soft", &response.VersionInfo{
-				VersionCode: downloadInfo.LatestVersion.VersionCode,
-				VersionName: downloadInfo.LatestVersion.VersionName,
-				Url:         downloadInfo.URL,
-			}
+			return "soft", versionInfo
 		}
 	}
 	return "none", nil // No updates available
