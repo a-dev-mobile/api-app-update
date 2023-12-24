@@ -44,11 +44,12 @@ func NewHandlerContext(db *mongo.Client, lg *slog.Logger, cfg *config.Config) *H
 
 // Check handles the request for checking application updates.
 // @Summary Check for application updates
-// @Description Checks if there is an update available for a given application package and returns the type of update required along with the latest version information, if any.
+// @Description Checks if there is an update available for a given application package.
+// In debug mode, it always returns the latest version information.
 // @Tags Application Update
 // @Accept json
 // @Produce json
-// @Param request body request.CheckRequest true "Check Request - includes details such as package version and current version of the application."
+// @Param request body request.CheckRequest true "Check Request - includes details such as package version, current version of the application, and debug mode."
 // @Success 200 {object} response.CheckResponse "Success Response - returns the type of update required ('hard', 'soft', or 'none') and the latest version information, including the checksum, if an update is available."
 // @Failure 400 {object} response.StatusResponse "Bad Request - Invalid request body or parameters."
 // @Failure 404 {object} response.StatusResponse "Not Found - Update information for the requested package is not found."
@@ -96,19 +97,30 @@ func (hctx *HandlerContext) processUpdateCheck(ctx context.Context, updateReq re
 	}
 
 	// Determine the type of update that is required.
-	updateType, latestVersionInfo := hctx.determineUpdateType(updateReq.VersionCode, appUpdateDb.Downloads[actualStore])
+	updateType, latestVersionInfo := hctx.determineUpdateType(updateReq.VersionCode, appUpdateDb.Downloads[actualStore], updateReq.DebugMode)
 
 	// Construct the response.
 	updateResponse := &response.CheckResponse{
 		UpdateType:    updateType,
-		LatestVersion: latestVersionInfo, // This will be nil if no update is required.
+		LatestVersion: latestVersionInfo, 
 	}
 
 	return updateResponse, nil
 }
 
-// determineUpdateType determines the type of update required based on the current version build and the download information.
-func (hctx *HandlerContext) determineUpdateType(versionCode int, downloadInfo db.DownloadInfo) (string, *response.VersionInfo) {
+// determineUpdateType determines the type of update required based on the current version build, download information, and debug mode.
+func (hctx *HandlerContext) determineUpdateType(versionCode int, downloadInfo db.DownloadInfo, debugMode bool) (string, *response.VersionInfo) {
+	// If debug mode is enabled, return the latest version information with the actual download URL
+	if debugMode {
+		return "soft", &response.VersionInfo{
+			VersionCode: downloadInfo.LatestVersion.VersionCode,
+			VersionName: downloadInfo.LatestVersion.VersionName,
+			Url:         downloadInfo.URL, // Actual URL for the latest version
+			Checksum:    downloadInfo.LatestVersion.Checksum,
+		}
+	}
+
+	// Standard logic for determining the type of update required
 	if downloadInfo.LatestVersion.VersionCode > versionCode {
 		versionInfo := &response.VersionInfo{
 			VersionCode: downloadInfo.LatestVersion.VersionCode,
@@ -123,6 +135,7 @@ func (hctx *HandlerContext) determineUpdateType(versionCode int, downloadInfo db
 			return "soft", versionInfo
 		}
 	}
+
 	return "none", nil // No updates available
 }
 

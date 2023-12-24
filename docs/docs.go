@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/check": {
             "post": {
-                "description": "Checks if there is an update available for a given application package and returns the type of update required along with the latest version information, if any.",
+                "description": "Checks if there is an update available for a given application package.",
                 "consumes": [
                     "application/json"
                 ],
@@ -30,7 +30,7 @@ const docTemplate = `{
                 "summary": "Check for application updates",
                 "parameters": [
                     {
-                        "description": "Check Request - includes details such as package version and current version of the application.",
+                        "description": "Check Request - includes details such as package version, current version of the application, and debug mode.",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -178,6 +178,10 @@ const docTemplate = `{
                 "versionName"
             ],
             "properties": {
+                "debugMode": {
+                    "description": "New field for debug mode\n@Description If true, the API will always return the latest version information regardless of the actual version status. Useful for debugging purposes.",
+                    "type": "boolean"
+                },
                 "installerPackageName": {
                     "description": "InstallerPackageName is the package name of the installer.\n@Required",
                     "type": "string",
@@ -234,12 +238,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "url": {
-                    "description": "Url is the URL where the latest version can be downloaded from.",
+                    "description": "existing fields...\n@Description The URL where the latest version can be downloaded from.\nIn debug mode, this URL is always provided, even when no update is required.",
                     "type": "string"
-                },
-                "versionCode": {
-                    "description": "VersionCode represents the version build of the application.",
-                    "type": "integer"
                 },
                 "versionName": {
                     "description": "VersionName is the version of the latest application version.",

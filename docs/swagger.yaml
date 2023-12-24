@@ -2,6 +2,11 @@ definitions:
   request.CheckRequest:
     description: The request payload for checking application updates.
     properties:
+      debugMode:
+        description: |-
+          New field for debug mode
+          @Description If true, the API will always return the latest version information regardless of the actual version status. Useful for debugging purposes.
+        type: boolean
       installerPackageName:
         description: |-
           InstallerPackageName is the package name of the installer.
@@ -59,11 +64,11 @@ definitions:
         description: Checksum is the SHA-256 checksum of the latest application version.
         type: string
       url:
-        description: Url is the URL where the latest version can be downloaded from.
+        description: |-
+          existing fields...
+          @Description The URL where the latest version can be downloaded from.
+          In debug mode, this URL is always provided, even when no update is required.
         type: string
-      versionCode:
-        description: VersionCode represents the version build of the application.
-        type: integer
       versionName:
         description: VersionName is the version of the latest application version.
         type: string
@@ -76,11 +81,10 @@ paths:
       consumes:
       - application/json
       description: Checks if there is an update available for a given application
-        package and returns the type of update required along with the latest version
-        information, if any.
+        package.
       parameters:
-      - description: Check Request - includes details such as package version and
-          current version of the application.
+      - description: Check Request - includes details such as package version, current
+          version of the application, and debug mode.
         in: body
         name: request
         required: true
