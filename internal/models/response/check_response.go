@@ -1,11 +1,15 @@
 package response
 
 // VersionInfo holds information about the latest version of the app.
+
 type VersionInfo struct {
 	// existing fields...
 	// @Description The URL where the latest version can be downloaded from.
 	// In debug mode, this URL is always provided, even when no update is required.
 	Url string `json:"url,omitempty"`
+
+	// VersionCode represents the version build of the application.
+	VersionCode int `json:"versionCode,omitempty"`
 
 	// VersionName is the version of the latest application version.
 	VersionName string `json:"versionName,omitempty"`
