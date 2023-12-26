@@ -102,7 +102,7 @@ func (hctx *HandlerContext) processUpdateCheck(ctx context.Context, updateReq re
 	// Construct the response.
 	updateResponse := &response.CheckResponse{
 		UpdateType:    updateType,
-		LatestVersion: latestVersionInfo, 
+		LatestVersion: latestVersionInfo,
 	}
 
 	return updateResponse, nil
@@ -113,20 +113,24 @@ func (hctx *HandlerContext) determineUpdateType(versionCode int, downloadInfo db
 	// If debug mode is enabled, return the latest version information with the actual download URL
 	if debugMode {
 		return "soft", &response.VersionInfo{
-			VersionCode: downloadInfo.LatestVersion.VersionCode,
-			VersionName: downloadInfo.LatestVersion.VersionName,
-			Url:         downloadInfo.URL, // Actual URL for the latest version
-			Checksum:    downloadInfo.LatestVersion.Checksum,
+			VersionCode:       downloadInfo.LatestVersion.VersionCode,
+			VersionName:       downloadInfo.LatestVersion.VersionName,
+			Url:               downloadInfo.URL, // Actual URL for the latest version
+			Checksum:          downloadInfo.LatestVersion.Checksum,
+			UpdateDescription: downloadInfo.LatestVersion.UpdateDescription,
+			FileSize:          downloadInfo.LatestVersion.FileSize,
 		}
 	}
 
 	// Standard logic for determining the type of update required
 	if downloadInfo.LatestVersion.VersionCode > versionCode {
 		versionInfo := &response.VersionInfo{
-			VersionCode: downloadInfo.LatestVersion.VersionCode,
-			VersionName: downloadInfo.LatestVersion.VersionName,
-			Url:         downloadInfo.URL,
-			Checksum:    downloadInfo.LatestVersion.Checksum,
+			VersionCode:       downloadInfo.LatestVersion.VersionCode,
+			VersionName:       downloadInfo.LatestVersion.VersionName,
+			Url:               downloadInfo.URL,
+			Checksum:          downloadInfo.LatestVersion.Checksum,
+			UpdateDescription: downloadInfo.LatestVersion.UpdateDescription,
+			FileSize:          downloadInfo.LatestVersion.FileSize,
 		}
 
 		if downloadInfo.UpdateRequired.HardUpdate.MinimumVersionCode > versionCode {

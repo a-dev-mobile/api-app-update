@@ -7,12 +7,12 @@ type DownloadInfo struct {
 }
 
 type VersionInfo struct {
-	VersionCode int    `json:"versionCode" bson:"versionCode"`
-	VersionName  string `json:"versionName" bson:"versionName"`
-	Checksum    string `json:"checksum" bson:"checksum"` // New field for checksum
+	VersionCode       int    `json:"versionCode" bson:"versionCode"`
+	VersionName       string `json:"versionName" bson:"versionName"`
+	Checksum          string `json:"checksum" bson:"checksum"`
+	FileSize          int64    `json:"fileSize" bson:"fileSize"`
+	UpdateDescription string `json:"updateDescription" bson:"updateDescription"`
 }
-
-
 
 type UpdateRequirements struct {
 	HardUpdate UpdatePolicy `json:"hardUpdate" bson:"hardUpdate"`
@@ -20,7 +20,8 @@ type UpdateRequirements struct {
 }
 
 type UpdatePolicy struct {
-	MinimumVersionCode int `json:"minimumVersionCode" bson:"minimumVersionCode"`}
+	MinimumVersionCode int `json:"minimumVersionCode" bson:"minimumVersionCode"`
+}
 
 type AppUpdateDb struct {
 	Name        string                  `json:"name" bson:"name"`

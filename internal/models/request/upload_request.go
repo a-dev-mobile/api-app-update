@@ -22,6 +22,7 @@ type UploadRequest struct {
 	VersionCode          int    // Build number of the app, extracted from the filename.
 	VersionName          string // Version of the app, extracted from the filename.
 	InstallerPackageName string // Name of the installer package, extracted from the filename.
+	UpdateDescription    string
 }
 
 // ParseFilename parses the given filename to extract the package name, version code,

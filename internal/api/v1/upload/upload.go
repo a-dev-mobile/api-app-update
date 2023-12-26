@@ -24,13 +24,13 @@ import (
 
 // We declare standard error variables that we can use to correlate and identify problems.
 var (
-	ErrNotFound             = errors.New("document not found")
-	ErrDatabaseError        = errors.New("database error")
-	ErrApkFileRequired      = errors.New("apk file is required")
-	ErrInvalidRequestBody   = errors.New("invalid request body")
+	ErrNotFound           = errors.New("document not found")
+	ErrDatabaseError      = errors.New("database error")
+	ErrApkFileRequired    = errors.New("apk file is required")
+	ErrInvalidRequestBody = errors.New("invalid request body")
 
-	ErrInternalServerError  = errors.New("internal server error")
-	ErrSaveFile             = errors.New("failed to save the uploaded file")
+	ErrInternalServerError = errors.New("internal server error")
+	ErrSaveFile            = errors.New("failed to save the uploaded file")
 )
 
 // HandlerContext contains dependencies that will be used by HTTP handlers.
@@ -53,15 +53,15 @@ func NewHandlerContext(db *mongo.Client, lg *slog.Logger, cfg *config.Config) *H
 // Upload processes an incoming request to update application version information.
 // @Summary Update Application Version
 // @Description This endpoint handles the uploading of an APK file and updates the application version information in the database.
-//
 //	It parses the filename to extract necessary details such as package name, version name, version code, and installer package name.
 //	The filename should follow the format: "NameApp-ID_<PackageName>-Ver_<VersionName>-Code_<VersionCode>-Installer_<InstallerPackageName>.apk".
-//	After parsing and validation, the APK file is stored, and its details are updated in the database.
-//
+//	After parsing and validation, the APK file is stored, and its details are updated in the database, including file size and update description.
 // @Tags Application Update
 // @Accept multipart/form-data
 // @Produce json
 // @Param file formData file true "APK File to be uploaded; should follow the specified naming convention."
+// @Param checksum formData string true "Checksum of the APK file."
+// @Param updateDescription formData string false "Description of what's new in this version."
 // @Success 200 {object} response.StatusResponse "Successful response indicating the successful processing and updating of the application version information."
 // @Failure 400 {object} response.StatusResponse "Bad Request: Occurs when the request body is invalid, parameters are missing or improperly formatted, or if the file does not follow the expected naming convention."
 // @Failure 404 {object} response.StatusResponse "Not Found: The requested document is not found in the database."
@@ -83,6 +83,8 @@ func (hctx *HandlerContext) Upload(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response.StatusResponse{Message: ErrApkFileRequired.Error()})
 		return
 	}
+	// Calculate the file size in megabytes
+	fileSize := apkFile.Size 
 	// Parse filename to extract details
 	if err := req.ParseFilename(apkFile.Filename); err != nil {
 		hctx.Logger.Error("Failed to ParseFilename", "error", err.Error())
@@ -92,57 +94,60 @@ func (hctx *HandlerContext) Upload(c *gin.Context) {
 	// Validation of request parameters
 	if err := req.Validate(); err != nil {
 
-		c.JSON(http.StatusBadRequest, response.StatusResponse{Message:"invalid request parameters"})
+		c.JSON(http.StatusBadRequest, response.StatusResponse{Message: "invalid request parameters"})
 		return
 	}
 
-	// Get checksum from request
+	// Get checksum and update description from request
 	providedChecksum := c.PostForm("checksum")
+	updateDescription := c.PostForm("updateDescription") // Retrieve the update description
 
-    if err := hctx.verifyChecksum(apkFile, providedChecksum); err != nil {
-        hctx.Logger.Error("Checksum verification failed", "error", err.Error())
-        c.JSON(http.StatusBadRequest, response.StatusResponse{Message: "Checksum verification failed"})
-        return
-    }
+	if err := hctx.verifyChecksum(apkFile, providedChecksum); err != nil {
+		hctx.Logger.Error("Checksum verification failed", "error", err.Error())
+		c.JSON(http.StatusBadRequest, response.StatusResponse{Message: "Checksum verification failed"})
+		return
+	}
 	savePath := filepath.Join(hctx.Config.FileStorage.ApkPath, filepath.Base(apkFile.Filename))
-    if err := c.SaveUploadedFile(apkFile, savePath); err != nil {
-        hctx.Logger.Error("Failed to save the uploaded file", slog.String("error", err.Error()))
-        c.JSON(http.StatusInternalServerError, response.StatusResponse{Message: ErrSaveFile.Error()})
-        return
-    }
+	if err := c.SaveUploadedFile(apkFile, savePath); err != nil {
+		hctx.Logger.Error("Failed to save the uploaded file", slog.String("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, response.StatusResponse{Message: ErrSaveFile.Error()})
+		return
+	}
 
-    latestVersion := db.VersionInfo{
-        VersionCode: req.VersionCode,
-        VersionName: req.VersionName,
-        Checksum:    providedChecksum,
-    }
+	latestVersion := db.VersionInfo{
+		VersionCode:       req.VersionCode,
+		VersionName:       req.VersionName,
+		Checksum:          providedChecksum,
+		UpdateDescription: updateDescription,
+		FileSize:          fileSize,
+	}
 
-    apkURL := hctx.Config.FileStorage.ApkURL + apkFile.Filename
-    if err := hctx.updateLatestVersionInfo(c.Request.Context(), req.PackageName, utils.GetActualStoreName(req.InstallerPackageName), latestVersion, apkURL); err != nil {
-        hctx.Logger.Error("Error updating version info", slog.String("error", err.Error()))
-        c.JSON(http.StatusInternalServerError, response.StatusResponse{Message: err.Error()})
-        return
-    }
+	apkURL := hctx.Config.FileStorage.ApkURL + apkFile.Filename
+	if err := hctx.updateLatestVersionInfo(c.Request.Context(), req.PackageName, utils.GetActualStoreName(req.InstallerPackageName), latestVersion, apkURL); err != nil {
+		hctx.Logger.Error("Error updating version info", slog.String("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, response.StatusResponse{Message: err.Error()})
+		return
+	}
 
-    c.JSON(http.StatusOK, response.StatusResponse{Message: "Update information processed successfully"})
+	c.JSON(http.StatusOK, response.StatusResponse{Message: "Update information processed successfully"})
 }
 func (hctx *HandlerContext) verifyChecksum(fileHeader *multipart.FileHeader, expectedChecksum string) error {
-    file, err := fileHeader.Open()
-    if err != nil {
-        return err
-    }
-    defer file.Close()
+	file, err := fileHeader.Open()
+	if err != nil {
+		return err
+	}
+	defer file.Close()
 
-    calculatedChecksum, err := utils.CalculateChecksum(file)
-    if err != nil {
-        return err
-    }
+	calculatedChecksum, err := utils.CalculateChecksum(file)
+	if err != nil {
+		return err
+	}
 
-    if expectedChecksum != calculatedChecksum {
-        return errors.New("checksum mismatch")
-    }
+	if expectedChecksum != calculatedChecksum {
+		return errors.New("checksum mismatch")
+	}
 
-    return nil
+	return nil
 }
 
 func (hctx *HandlerContext) updateLatestVersionInfo(ctx context.Context, packageName, actualStore string, latestVersion db.VersionInfo, url string) error {

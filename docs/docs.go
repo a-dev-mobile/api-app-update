@@ -137,6 +137,19 @@ const docTemplate = `{
                         "name": "file",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Checksum of the APK file.",
+                        "name": "checksum",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Description of what's new in this version.",
+                        "name": "updateDescription",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -205,7 +218,6 @@ const docTemplate = `{
             }
         },
         "response.CheckResponse": {
-            "description": "holds the overall update information for an application.",
             "type": "object",
             "properties": {
                 "latestVersion": {
@@ -237,9 +249,21 @@ const docTemplate = `{
                     "description": "Checksum is the SHA-256 checksum of the latest application version.",
                     "type": "string"
                 },
-                "url": {
-                    "description": "existing fields...\n@Description The URL where the latest version can be downloaded from.\nIn debug mode, this URL is always provided, even when no update is required.",
+                "fileSize": {
+                    "description": "@Description The size of the latest version file in bytes.",
+                    "type": "integer"
+                },
+                "updateDescription": {
+                    "description": "@Description The description of what's new in the latest version.",
                     "type": "string"
+                },
+                "url": {
+                    "description": "@Description The URL where the latest version can be downloaded from.\nIn debug mode, this URL is always provided, even when no update is required.",
+                    "type": "string"
+                },
+                "versionCode": {
+                    "description": "VersionCode represents the version build of the application.",
+                    "type": "integer"
                 },
                 "versionName": {
                     "description": "VersionName is the version of the latest application version.",

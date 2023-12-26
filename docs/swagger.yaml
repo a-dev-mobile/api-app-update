@@ -39,7 +39,6 @@ definitions:
     - versionName
     type: object
   response.CheckResponse:
-    description: holds the overall update information for an application.
     properties:
       latestVersion:
         allOf:
@@ -63,12 +62,20 @@ definitions:
       checksum:
         description: Checksum is the SHA-256 checksum of the latest application version.
         type: string
+      fileSize:
+        description: '@Description The size of the latest version file in bytes.'
+        type: integer
+      updateDescription:
+        description: '@Description The description of what''s new in the latest version.'
+        type: string
       url:
         description: |-
-          existing fields...
           @Description The URL where the latest version can be downloaded from.
           In debug mode, this URL is always provided, even when no update is required.
         type: string
+      versionCode:
+        description: VersionCode represents the version build of the application.
+        type: integer
       versionName:
         description: VersionName is the version of the latest application version.
         type: string
@@ -160,6 +167,15 @@ paths:
         name: file
         required: true
         type: file
+      - description: Checksum of the APK file.
+        in: formData
+        name: checksum
+        required: true
+        type: string
+      - description: Description of what's new in this version.
+        in: formData
+        name: updateDescription
+        type: string
       produces:
       - application/json
       responses:
