@@ -3,8 +3,11 @@ package download
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
 	"path/filepath"
 
@@ -12,7 +15,6 @@ import (
 
 	"github.com/a-dev-mobile/app-update-api/internal/config"
 	"github.com/a-dev-mobile/app-update-api/internal/models/response"
-
 
 	"golang.org/x/exp/slog"
 )
@@ -53,38 +55,110 @@ func NewHandlerContext(lg *slog.Logger, cfg *config.Config) *HandlerContext {
 // @Failure 500 {object} response.StatusResponse "Internal Server Error - An unexpected error occurred."
 // @Router /download/{filename} [get]
 func (hctx *HandlerContext) DownloadApk(c *gin.Context) {
-	filename := c.Param("filename")
+    filename := c.Param("filename")
+    hctx.Logger.Info("Download request for APK", slog.String("filename", filename))
 
-	// Restrict access to APK files only for security
-	if filepath.Ext(filename) != ".apk" {
+    if filepath.Ext(filename) != ".apk" {
+        hctx.Logger.Warn("Attempt to download a non-apk file", slog.String("filename", filename))
+        c.JSON(http.StatusBadRequest, response.StatusResponse{Message: ErrInvalidFileType.Error()})
+        return
+    }
 
-		c.JSON(http.StatusBadRequest, response.StatusResponse{Message: ErrInvalidFileType.Error()})
-		return
-	}
+    cleanFilename := filepath.Base(filename)
+    filePath := filepath.Join(hctx.Config.FileStorage.ApkPath, cleanFilename)
 
-	// Sanitize the filename
-	cleanFilename := filepath.Base(filename)
-	filePath := filepath.Join(hctx.Config.FileStorage.ApkPath, cleanFilename)
+    file, err := os.Open(filePath)
+    if err != nil {
+        if os.IsNotExist(err) {
+            hctx.Logger.Error("APK file not found", slog.String("filename", cleanFilename))
+            c.JSON(http.StatusNotFound, response.StatusResponse{Message: ErrFileNotFound.Error()})
+        } else {
+            hctx.Logger.Error("Internal server error while accessing file", slog.String("error", err.Error()))
+            c.JSON(http.StatusInternalServerError, response.StatusResponse{Message: ErrInternalServerError.Error()})
+        }
+        return
+    }
+    defer file.Close()
 
-	fileStat, err := os.Stat(filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			hctx.Logger.Error("File not found", slog.String("filename", cleanFilename))
-			c.JSON(http.StatusNotFound, response.StatusResponse{Message: ErrFileNotFound.Error()})
+    fi, err := file.Stat()
+    if err != nil {
+        hctx.Logger.Error("Error getting file info", slog.String("error", err.Error()))
+        c.JSON(http.StatusInternalServerError, response.StatusResponse{Message: ErrInternalServerError.Error()})
+        return
+    }
 
-		} else {
-			hctx.Logger.Error("Internal error", slog.String("error", err.Error()))
+    fileSize := fi.Size()
+    c.Header("Content-Disposition", "attachment; filename="+cleanFilename)
+    c.Header("Content-Type", "application/vnd.android.package-archive")
+    c.Header("Accept-Ranges", "bytes")
 
-			c.JSON(http.StatusInternalServerError, response.StatusResponse{Message: ErrInternalServerError.Error()})
-		}
-		return
-	}
+    rangeHeader := c.GetHeader("Range")
+    if rangeHeader == "" {
+        // No range header, send the entire file
+        c.Header("Content-Length", fmt.Sprintf("%d", fileSize))
+        c.File(filePath)
+    } else {
+        // Parse Range header and send the specified part of the file
+        start, end, err := parseRange(rangeHeader, fileSize)
+        if err != nil {
+            hctx.Logger.Error("Invalid range", slog.String("range", rangeHeader), slog.String("error", err.Error()))
+            c.JSON(http.StatusRequestedRangeNotSatisfiable, gin.H{"error": "Invalid range"})
+            return
+        }
 
-	// Set headers
-	c.Header("Content-Disposition", "attachment; filename="+cleanFilename)
-	c.Header("Content-Type", "application/vnd.android.package-archive")
-	c.Header("Content-Length", fmt.Sprintf("%d", fileStat.Size()))
-	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+        c.Header("Content-Range", fmt.Sprintf("bytes %d-%d/%d", start, end, fileSize))
+        c.Header("Content-Length", fmt.Sprintf("%d", end-start+1))
+        c.Status(http.StatusPartialContent)
 
-	c.File(filePath)
+        // Use io.CopyN to send the specified part of the file
+        _, err = file.Seek(start, 0)
+        if err != nil {
+            hctx.Logger.Error("Error seeking in file", slog.String("error", err.Error()))
+            c.JSON(http.StatusInternalServerError, response.StatusResponse{Message: ErrInternalServerError.Error()})
+            return
+        }
+
+        _, err = io.CopyN(c.Writer, file, end-start+1)
+        if err != nil {
+            hctx.Logger.Error("Error during partial file transfer", slog.String("error", err.Error()))
+            // Note: Cannot send a new HTTP status code here since the headers are already written
+        }
+    }
+
+    hctx.Logger.Info("APK file transfer completed", slog.String("filename", cleanFilename))
+}
+
+func parseRange(rangeHeader string, fileSize int64) (int64, int64, error) {
+    // Example range header: "bytes=0-499"
+    rangeParts := strings.Split(rangeHeader, "=")
+    if len(rangeParts) != 2 || rangeParts[0] != "bytes" {
+        return 0, 0, errors.New("invalid range header")
+    }
+
+    rangeValParts := strings.Split(rangeParts[1], "-")
+    if len(rangeValParts) != 2 {
+        return 0, 0, errors.New("invalid range value")
+    }
+
+    start, err := strconv.ParseInt(rangeValParts[0], 10, 64)
+    if err != nil {
+        return 0, 0, err
+    }
+
+    var end int64
+    if rangeValParts[1] == "" {
+        // Open-ended range
+        end = fileSize - 1
+    } else {
+        end, err = strconv.ParseInt(rangeValParts[1], 10, 64)
+        if err != nil {
+            return 0, 0, err
+        }
+    }
+
+    if start > end || end >= fileSize {
+        return 0, 0, errors.New("invalid range span")
+    }
+
+    return start, end, nil
 }
