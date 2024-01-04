@@ -150,6 +150,9 @@ func startServer(cfg *config.Config, router *gin.Engine, lg *slog.Logger) {
 	srv := &http.Server{
 		Addr:    serverAddr,
 		Handler: router,
+
+		WriteTimeout: 1 * time.Minute,
+		ReadTimeout:  1 * time.Minute,
 	}
 
 	go func() {
