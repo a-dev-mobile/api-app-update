@@ -1,6 +1,6 @@
 /*
 Package mongo provides a streamlined interface for connecting to a MongoDB database
-within the github.com/a-dev-mobile/app-update-api project. Key functionalities include initializing MongoDB
+within the github.com/a-dev-mobile/api-app-update project. Key functionalities include initializing MongoDB
 client instances and constructing database connection strings.
 
 Key Functions:

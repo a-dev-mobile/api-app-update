@@ -3,9 +3,9 @@ package constants
 import "time"
 
 const (
-	CheckAPIEndpoint     = "app-update-api/v1/check"
-	UploadAPIEndpoint    = "app-update-api/v1/upload"
-	DownloadAPIEndpoint  = "app-update-api/v1/download/:filename"
+	CheckAPIEndpoint    = "api-app-update/v1/check"
+	UploadAPIEndpoint   = "api-app-update/v1/upload"
+	DownloadAPIEndpoint = "api-app-update/v1/download/:filename"
 
 	DefaultServerTimeout = 5 * time.Second // Example timeout value
 )

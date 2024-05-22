@@ -1,16 +1,4 @@
-// Package main is the entry point of the github.com/a-dev-mobile/app-update-api application.
-// It sets up and starts a web server using the Gin framework, establishes database connections,
-// and initializes various HTTP handlers for the application's routes.
-//
-// The package orchestrates the overall flow of the application, including:
-// - Loading and validating configuration settings.
-// - Setting up logging and database connections.
-// - Initializing and configuring the Gin router with necessary middleware.
-// - Defining routes for app update checks, uploads, and downloads.
-// - Gracefully handling server shutdowns.
-//
-// This package is designed to bootstrap the necessary components and start the web service,
-// making the github.com/a-dev-mobile/app-update-api ready to serve incoming HTTP requests.
+
 package main
 
 import (
@@ -24,22 +12,22 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	docs "github.com/a-dev-mobile/app-update-api/docs"
+	docs "github.com/a-dev-mobile/api-app-update/docs"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"github.com/a-dev-mobile/app-update-api/database/mongo"
-	"github.com/a-dev-mobile/app-update-api/internal/config"
+	"github.com/a-dev-mobile/api-app-update/database/mongo"
+	"github.com/a-dev-mobile/api-app-update/internal/config"
 
 	"golang.org/x/exp/slog"
 
-	"github.com/a-dev-mobile/app-update-api/internal/api/v1/check"
-	"github.com/a-dev-mobile/app-update-api/internal/api/v1/download"
-	"github.com/a-dev-mobile/app-update-api/internal/api/v1/upload"
-	"github.com/a-dev-mobile/app-update-api/internal/constants"
-	"github.com/a-dev-mobile/app-update-api/internal/logging"
-	"github.com/a-dev-mobile/app-update-api/internal/middleware"
+	"github.com/a-dev-mobile/api-app-update/internal/api/v1/check"
+	"github.com/a-dev-mobile/api-app-update/internal/api/v1/download"
+	"github.com/a-dev-mobile/api-app-update/internal/api/v1/upload"
+	"github.com/a-dev-mobile/api-app-update/internal/constants"
+	"github.com/a-dev-mobile/api-app-update/internal/logging"
+	"github.com/a-dev-mobile/api-app-update/internal/middleware"
 
 	mongodriver "go.mongodb.org/mongo-driver/mongo"
 )
@@ -66,10 +54,10 @@ func main() {
 	docs.SwaggerInfo.Title = "App Update API"
 	docs.SwaggerInfo.Description = "Application update control"
 	docs.SwaggerInfo.Host = cfg.Swagger.Host
-	docs.SwaggerInfo.BasePath = "/app-update-api/v1"
+	docs.SwaggerInfo.BasePath = "/api-app-update/v1"
 	docs.SwaggerInfo.Version = "v1"
 
-	router.GET("app-update-api/v1/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	router.GET("api-app-update/v1/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	lg.Info("Server starting", "env", string(cfg.Environment))
 
 	startServer(cfg, router, lg)
@@ -150,9 +138,6 @@ func startServer(cfg *config.Config, router *gin.Engine, lg *slog.Logger) {
 	srv := &http.Server{
 		Addr:    serverAddr,
 		Handler: router,
-
-		WriteTimeout: 1 * time.Minute,
-		ReadTimeout:  1 * time.Minute,
 	}
 
 	go func() {

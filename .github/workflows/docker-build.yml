@@ -25,4 +25,4 @@ jobs:
           context: .
           push: true
           tags: |
-            wayofdt/app-update-api:latest
+            wayofdt/api-app-update:latest

@@ -13,11 +13,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/a-dev-mobile/app-update-api/internal/config"
-	"github.com/a-dev-mobile/app-update-api/internal/models/db"
-	"github.com/a-dev-mobile/app-update-api/internal/models/request"
-	"github.com/a-dev-mobile/app-update-api/internal/models/response"
-	"github.com/a-dev-mobile/app-update-api/internal/utils"
+	"github.com/a-dev-mobile/api-app-update/internal/config"
+	"github.com/a-dev-mobile/api-app-update/internal/models/db"
+	"github.com/a-dev-mobile/api-app-update/internal/models/request"
+	"github.com/a-dev-mobile/api-app-update/internal/models/response"
+	"github.com/a-dev-mobile/api-app-update/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"

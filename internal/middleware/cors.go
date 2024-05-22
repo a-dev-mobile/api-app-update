@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"github.com/a-dev-mobile/app-update-api/internal/config"
-	"github.com/a-dev-mobile/app-update-api/internal/constants"
 	"net/http"
+
+	"github.com/a-dev-mobile/api-app-update/internal/config"
+	"github.com/a-dev-mobile/api-app-update/internal/constants"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"

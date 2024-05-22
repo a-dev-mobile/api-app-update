@@ -2,16 +2,16 @@ package config
 
 import (
 	"errors"
-	"strings"
-	// Errors package for handling errors.
+
+
 	"fmt"
-	// Fmt package for formatting strings.
+
 	"os"
-	// Os package for interacting with the operating system, like file handling.
+
 	"path/filepath"
-	// Filepath package for manipulating filename paths.
+
 	"gopkg.in/yaml.v3"
-	// Yaml.v3 package for YAML processing.
+
 )
 
 // Config represents the entire configuration as structured in YAML.
@@ -60,22 +60,6 @@ type DatabaseConfig struct {
 	Collections       map[string]CollectionName `yaml:"collections"`
 }
 
-// UnmarshalYAML customizes the unmarshalling for LogLevel.
-func (l *LogLevel) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var levelStr string
-	if err := unmarshal(&levelStr); err != nil {
-		return err
-	}
-
-	levelStr = strings.ToLower(levelStr)
-	switch LogLevel(levelStr) {
-	case LogLevelDebug, LogLevelInfo, LogLevelWarning, LogLevelError:
-		*l = LogLevel(levelStr)
-		return nil
-	default:
-		return fmt.Errorf("invalid log level: %s", levelStr)
-	}
-}
 
 // loadConfig reads and decodes the YAML configuration file.
 // It is a private function, indicated by the lowercase first letter.

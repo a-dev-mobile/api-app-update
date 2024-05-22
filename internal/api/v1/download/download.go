@@ -13,8 +13,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/a-dev-mobile/app-update-api/internal/config"
-	"github.com/a-dev-mobile/app-update-api/internal/models/response"
+	"github.com/a-dev-mobile/api-app-update/internal/config"
+	"github.com/a-dev-mobile/api-app-update/internal/models/response"
 
 	"golang.org/x/exp/slog"
 )

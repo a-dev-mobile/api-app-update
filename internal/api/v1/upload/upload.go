@@ -14,12 +14,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/exp/slog"
 
-	"github.com/a-dev-mobile/app-update-api/internal/config"
-	"github.com/a-dev-mobile/app-update-api/internal/models/db"
-	"github.com/a-dev-mobile/app-update-api/internal/models/request"
-	"github.com/a-dev-mobile/app-update-api/internal/models/response"
+	"github.com/a-dev-mobile/api-app-update/internal/config"
+	"github.com/a-dev-mobile/api-app-update/internal/models/db"
+	"github.com/a-dev-mobile/api-app-update/internal/models/request"
+	"github.com/a-dev-mobile/api-app-update/internal/models/response"
 
-	"github.com/a-dev-mobile/app-update-api/internal/utils"
+	"github.com/a-dev-mobile/api-app-update/internal/utils"
 )
 
 // We declare standard error variables that we can use to correlate and identify problems.
@@ -53,9 +53,11 @@ func NewHandlerContext(db *mongo.Client, lg *slog.Logger, cfg *config.Config) *H
 // Upload processes an incoming request to update application version information.
 // @Summary Update Application Version
 // @Description This endpoint handles the uploading of an APK file and updates the application version information in the database.
+//
 //	It parses the filename to extract necessary details such as package name, version name, version code, and installer package name.
 //	The filename should follow the format: "NameApp-ID_<PackageName>-Ver_<VersionName>-Code_<VersionCode>-Installer_<InstallerPackageName>.apk".
 //	After parsing and validation, the APK file is stored, and its details are updated in the database, including file size and update description.
+//
 // @Tags Application Update
 // @Accept multipart/form-data
 // @Produce json
@@ -84,7 +86,7 @@ func (hctx *HandlerContext) Upload(c *gin.Context) {
 		return
 	}
 	// Calculate the file size in megabytes
-	fileSize := apkFile.Size 
+	fileSize := apkFile.Size
 	// Parse filename to extract details
 	if err := req.ParseFilename(apkFile.Filename); err != nil {
 		hctx.Logger.Error("Failed to ParseFilename", "error", err.Error())

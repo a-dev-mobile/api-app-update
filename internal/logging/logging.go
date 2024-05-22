@@ -1,7 +1,7 @@
 package logging
 
 import (
-	"github.com/a-dev-mobile/app-update-api/internal/config"
+	"github.com/a-dev-mobile/api-app-update/internal/config"
 	"golang.org/x/exp/slog"
 	"gopkg.in/natefinch/lumberjack.v2"
 
@@ -30,13 +30,6 @@ func SetupLogger(cfg *config.Config) *slog.Logger {
 	}
 
 	return logger
-}
-
-func Err(err error) slog.Attr {
-	return slog.Attr{
-		Key:   "error",
-		Value: slog.StringValue(err.Error()),
-	}
 }
 
 func parseLogLevel(level config.LogLevel) slog.Level {

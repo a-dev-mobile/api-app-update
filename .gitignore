@@ -4,3 +4,4 @@ __debug_bin*
 .env
 /config/config.prod.json
 /config/config.yaml
+docker/docker-compose.yml
