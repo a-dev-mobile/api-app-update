@@ -5,3 +5,4 @@ __debug_bin*
 /config/config.prod.json
 /config/config.yaml
 docker/docker-compose.yml
+*.exe

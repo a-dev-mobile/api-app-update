@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 
-
 	"fmt"
 
 	"os"
@@ -11,7 +10,6 @@ import (
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
-
 )
 
 // Config represents the entire configuration as structured in YAML.
@@ -20,11 +18,11 @@ type Config struct {
 	Logging          LoggingConfig     `yaml:"logging"`
 	ClientConnection ClientConfig      `yaml:"clientConnectionSettings"`
 	Database         DatabaseConfig    `yaml:"database"`
-	FileStorage      FileStorageConfig `yaml:"fileStorage"` 
-    Swagger          SwaggerConfig     `yaml:"swagger"`
+	FileStorage      FileStorageConfig `yaml:"fileStorage"`
+	Swagger          SwaggerConfig     `yaml:"swagger"`
 }
 type SwaggerConfig struct {
-    Host string `yaml:"swaggerHost"`
+	Host string `yaml:"swaggerHost"`
 }
 type FileStorageConfig struct {
 	ApkPath string `yaml:"apkPath"`
@@ -59,7 +57,6 @@ type DatabaseConfig struct {
 	MaxPoolSize       int                       `yaml:"maxPoolSize"`
 	Collections       map[string]CollectionName `yaml:"collections"`
 }
-
 
 // loadConfig reads and decodes the YAML configuration file.
 // It is a private function, indicated by the lowercase first letter.

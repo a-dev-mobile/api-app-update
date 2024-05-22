@@ -36,7 +36,7 @@ func GetActualStoreName(installerPackageName string) string {
 	case "com.android.shell":
 		return "adb"
 
-	case "release.apk","apk","com.android.packageinstaller", "com.miui.packageinstaller", "com.google.android.packageinstaller":
+	case "release.apk", "apk", "com.android.packageinstaller", "com.miui.packageinstaller", "com.google.android.packageinstaller":
 		return "packageinstaller"
 
 	case "com.sec.android.app.samsungapps", "com.samsung.android.scloud":

@@ -18,13 +18,12 @@ type CheckRequest struct {
 	// @Required
 	VersionName string `json:"versionName" validate:"required" example:"2.0.0"`
 
-
 	// InstallerPackageName is the package name of the installer.
 	// @Required
 	InstallerPackageName string `json:"installerPackageName" validate:"required" example:"apk"`
-    // New field for debug mode
-    // @Description If true, the API will always return the latest version information regardless of the actual version status. Useful for debugging purposes.
-    DebugMode bool `json:"debugMode,omitempty"`
+	// New field for debug mode
+	// @Description If true, the API will always return the latest version information regardless of the actual version status. Useful for debugging purposes.
+	DebugMode bool `json:"debugMode,omitempty"`
 }
 
 // Validate использует валидатор для проверки полей структуры AppUpdateRequest.

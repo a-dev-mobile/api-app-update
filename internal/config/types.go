@@ -28,6 +28,5 @@ const (
 type CollectionName string
 
 const (
-	AppUpdate   CollectionName = "appUpdate"
-
+	AppUpdate CollectionName = "appUpdate"
 )

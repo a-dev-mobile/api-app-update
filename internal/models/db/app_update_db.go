@@ -10,7 +10,7 @@ type VersionInfo struct {
 	VersionCode       int    `json:"versionCode" bson:"versionCode"`
 	VersionName       string `json:"versionName" bson:"versionName"`
 	Checksum          string `json:"checksum" bson:"checksum"`
-	FileSize          int64    `json:"fileSize" bson:"fileSize"`
+	FileSize          int64  `json:"fileSize" bson:"fileSize"`
 	UpdateDescription string `json:"updateDescription" bson:"updateDescription"`
 }
 

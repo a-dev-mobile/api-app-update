@@ -2,13 +2,11 @@ package middleware
 
 import (
 	"fmt"
-	"net/http"
 	"github.com/gin-gonic/gin"
+	"net/http"
 
 	"golang.org/x/exp/slog"
-
 )
-
 
 func RecoveryMiddleware(lg *slog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
